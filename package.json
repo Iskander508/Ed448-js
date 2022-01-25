@@ -1,0 +1,108 @@
+{
+  "name": "ed448-js",
+  "version": "0.0.0-development",
+  "private": false,
+  "description": "Pure JS/TS library with Ed448 for EdDSA",
+  "keywords": [
+    "Ed448",
+    "EdDSA"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Iskander508/Ed448-js.git"
+  },
+  "license": "MIT",
+  "author": "Pavel Zarecky <zarecky@procivis.ch>",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/ed448-js.esm.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "src/",
+    "dist/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdx build",
+    "format": "tsdx lint src --fix",
+    "lint": "tsdx lint src",
+    "prepare": "tsdx build",
+    "semantic-release": "semantic-release",
+    "start": "tsdx watch",
+    "test": "tsdx test"
+  },
+  "prettier": {
+    "trailingComma": "all"
+  },
+  "dependencies": {
+    "jsbn": "^1.1.0",
+    "jssha": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/jsbn": "^1.2.30",
+    "@typescript-eslint/eslint-plugin": "4.33.0",
+    "@typescript-eslint/parser": "4.33.0",
+    "eslint-plugin-import": "2.25.2",
+    "eslint-plugin-jest": "25.0.1",
+    "prettier-plugin-packagejson": "2.2.13",
+    "semantic-release": "^19.0.2",
+    "semantic-release-cli": "5.4.4",
+    "tsdx": "0.14.1",
+    "tslib": "2.3.1",
+    "typescript": "4.4.4"
+  },
+  "peerDependencies": {},
+  "eslint": {
+    "env": {
+      "es6": true,
+      "jest": true,
+      "node": true
+    },
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 2019,
+      "sourceType": "module"
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:jest/recommended",
+      "plugin:import/recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+      "curly": "error",
+      "import/order": [
+        "error",
+        {
+          "newlines-between": "always"
+        }
+      ]
+    },
+    "settings": {
+      "import/extensions": [
+        ".ts"
+      ],
+      "import/resolver": {
+        "node": {
+          "extensions": [
+            ".ts"
+          ]
+        }
+      }
+    }
+  },
+  "renovate": {
+    "extends": [
+      "config:js-lib",
+      ":automergePatch",
+      ":automergeBranch",
+      ":automergePatch",
+      ":automergeBranch",
+      ":automergeLinters",
+      ":automergeTesters",
+      ":automergeTypes"
+    ]
+  }
+}
