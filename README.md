@@ -36,7 +36,7 @@ const Ed448 = createEd448();
 Calculate public key from a provided private key
 
 ```ts
-const privateKey = Array.from(crypto.randomFillSync(new Uint8Array(57)));
+const privateKey = crypto.randomFillSync(new Uint8Array(57));
 const publicKey = Ed448.getPublicKey(privateKey);
 ```
 

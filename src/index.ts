@@ -420,8 +420,8 @@ class PureEdDSA {
   }
 
   keygen(privkey: number[]): number[] {
-    if (privkey?.length !== truediv(this.b, 8)) {
-      throw new Error(`Invalid private key length: ${privkey?.length} `);
+    if (privkey.length !== truediv(this.b, 8)) {
+      throw new Error(`Invalid private key length: ${privkey.length} `);
     }
 
     const khash = this.H(privkey, null, false);
@@ -436,11 +436,11 @@ class PureEdDSA {
     ctx: null | number[],
     hflag: boolean,
   ): number[] {
-    if (privkey?.length !== truediv(this.b, 8)) {
-      throw new Error(`Invalid private key length: ${privkey?.length} `);
+    if (privkey.length !== truediv(this.b, 8)) {
+      throw new Error(`Invalid private key length: ${privkey.length} `);
     }
-    if (pubkey?.length !== truediv(this.b, 8)) {
-      throw new Error(`Invalid public key length: ${pubkey?.length} `);
+    if (pubkey.length !== truediv(this.b, 8)) {
+      throw new Error(`Invalid public key length: ${pubkey.length} `);
     }
     if (!msg) {
       throw new Error("Missing message input");
@@ -494,21 +494,23 @@ class PureEdDSA {
   }
 }
 
+type Input = number[] | Uint8Array | Buffer;
+
 export interface EdDSA {
-  getPublicKey(privateKey: number[]): number[];
+  getPublicKey(privateKey: Input): number[];
 
   sign(
-    privateKey: number[],
-    publicKey: number[],
-    data: number[],
-    context?: null | number[],
+    privateKey: Input,
+    publicKey: Input,
+    data: Input,
+    context?: null | Input,
   ): number[];
 
   verify(
-    publicKey: number[],
-    data: number[],
-    signature: number[],
-    context?: null | number[],
+    publicKey: Input,
+    data: Input,
+    signature: Input,
+    context?: null | Input,
   ): boolean;
 }
 
@@ -519,36 +521,36 @@ class EdDSAImpl implements EdDSA {
     this.pure = pureScheme;
   }
 
-  getPublicKey(privateKey: number[]) {
-    return this.pure.keygen(privateKey);
+  getPublicKey(privateKey: Input) {
+    return this.pure.keygen(Array.from(privateKey));
   }
 
   sign(
-    privateKey: number[],
-    publicKey: number[],
-    data: number[],
-    context: null | number[] = null,
+    privateKey: Input,
+    publicKey: Input,
+    data: Input,
+    context: null | Input = null,
   ) {
     return this.pure.sign(
-      privateKey,
-      publicKey,
-      data,
-      context || [],
+      Array.from(privateKey),
+      Array.from(publicKey),
+      Array.from(data),
+      context ? Array.from(context) : [],
       this.pflag,
     );
   }
 
   verify(
-    publicKey: number[],
-    data: number[],
-    signature: number[],
-    context: null | number[] = null,
+    publicKey: Input,
+    data: Input,
+    signature: Input,
+    context: null | Input = null,
   ) {
     return this.pure.verify(
-      publicKey,
-      data,
-      signature,
-      context || [],
+      Array.from(publicKey),
+      Array.from(data),
+      Array.from(signature),
+      context ? Array.from(context) : [],
       this.pflag,
     );
   }
