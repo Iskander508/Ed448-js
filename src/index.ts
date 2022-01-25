@@ -499,12 +499,7 @@ type Input = number[] | Uint8Array | Buffer;
 export interface EdDSA {
   getPublicKey(privateKey: Input): number[];
 
-  sign(
-    privateKey: Input,
-    publicKey: Input,
-    data: Input,
-    context?: null | Input,
-  ): number[];
+  sign(privateKey: Input, data: Input, context?: null | Input): number[];
 
   verify(
     publicKey: Input,
@@ -525,15 +520,11 @@ class EdDSAImpl implements EdDSA {
     return this.pure.keygen(Array.from(privateKey));
   }
 
-  sign(
-    privateKey: Input,
-    publicKey: Input,
-    data: Input,
-    context: null | Input = null,
-  ) {
+  sign(privateKey: Input, data: Input, context: null | Input = null) {
+    const publicKey = this.getPublicKey(privateKey);
     return this.pure.sign(
       Array.from(privateKey),
-      Array.from(publicKey),
+      publicKey,
       Array.from(data),
       context ? Array.from(context) : [],
       this.pflag,

@@ -142,10 +142,20 @@ describe("Ed448", () => {
 
     const message = Array.from(Buffer.from("testing content"));
 
-    const signature = Ed448.sign(privateKey, publicKey, message);
+    const signature = Ed448.sign(privateKey, message);
     expect(signature).toHaveLength(114);
 
     expect(Ed448.verify(publicKey, message, signature)).toBe(true);
+  });
+
+  it("changed signature doesn't validate", () => {
+    const privateKey = random(57);
+    const publicKey = Ed448.getPublicKey(privateKey);
+    const message = Array.from(Buffer.from("testing content"));
+    const signature = Ed448.sign(privateKey, message);
+    signature[1] = signature[1] ? 0x00 : 0x01;
+
+    expect(Ed448.verify(publicKey, message, signature)).toBe(false);
   });
 
   it.each(VECTORS)("matches test vector from RFC: '%s'", (_, vector) => {
@@ -155,19 +165,18 @@ describe("Ed448", () => {
 
     const message = toArray(vector.message);
     const context = vector.context ? toArray(vector.context) : null;
-    const signature = Ed448.sign(privateKey, publicKey, message, context);
+    const signature = Ed448.sign(privateKey, message, context);
     expect(signature).toEqual(toArray(vector.signature));
 
     expect(Ed448.verify(publicKey, message, signature, context)).toBe(true);
   });
 
   it("fails with missing input", () => {
-    const missing = null as unknown as number[];
+    const missing = (null as unknown) as number[];
     expect(() => Ed448.getPublicKey(missing)).toThrow();
 
-    expect(() => Ed448.sign(missing, random(57), [])).toThrow();
-    expect(() => Ed448.sign(random(57), missing, [])).toThrow();
-    expect(() => Ed448.sign(random(57), random(57), missing)).toThrow();
+    expect(() => Ed448.sign(missing, [])).toThrow();
+    expect(() => Ed448.sign(random(57), missing)).toThrow();
   });
 
   it("fails with invalid size of input", () => {
