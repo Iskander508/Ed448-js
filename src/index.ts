@@ -150,84 +150,8 @@ class Field {
     return this.X.mod(N2).intValue();
   }
 }
-abstract class EdwardsPoint {
-  readonly baseField: Field;
-  X: Field;
-  Y: Field;
-  Z: Field;
 
-  constructor(baseField: Field, x: Field, y: Field) {
-    this.baseField = baseField;
-    this.X = x;
-    this.Y = y;
-    this.Z = baseField.make(N1);
-  }
-
-  abstract solve_x2(y: Field): Field;
-  abstract zero_element(): EdwardsPoint;
-  abstract l(): BigInteger;
-  abstract n(): number;
-  abstract b(): number;
-  abstract c(): number;
-  abstract double(): EdwardsPoint;
-  abstract add(y: EdwardsPoint): EdwardsPoint;
-  abstract encode(): number[];
-  abstract decode(s: number[]): EdwardsPoint | null;
-
-  protected decode_base(s: number[], b: number): [Field | null, Field | null] {
-    if (s.length !== truediv(b, 8)) {
-      return [null, null];
-    }
-    const xs = s[truediv(b - 1, 8)] >> ((b - 1) & 7);
-    const y = this.baseField.frombytes(s, b);
-    if (!y) {
-      return [null, null];
-    }
-    let x = this.solve_x2(y).sqrt();
-    if (!x || (x.iszero() && xs !== x.sign())) {
-      return [null, null];
-    }
-    if (x.sign() !== xs) {
-      x = x.neg();
-    }
-    return [x, y];
-  }
-
-  protected encode_base(b: number): number[] {
-    const xp = this.X.div(this.Z);
-    const yp = this.Y.div(this.Z);
-    const s = yp.tobytes(b);
-    if (xp.sign() !== 0) {
-      s[truediv(b - 1, 8)] |= 1 << (b - 1) % 8;
-    }
-    return s;
-  }
-
-  // __mul__
-  mul(x: BigInteger): EdwardsPoint {
-    let r = this.zero_element();
-    let s = this as EdwardsPoint;
-    while (x.compareTo(N0) > 0) {
-      if (x.mod(N2).compareTo(N0) > 0) {
-        r = r.add(s);
-      }
-      s = s.double();
-      x = x.divide(N2);
-    }
-    return r;
-  }
-
-  // __eq__
-  equals(y: EdwardsPoint): boolean {
-    const xn1 = this.X.mul(y.Z);
-    const xn2 = y.X.mul(this.Z);
-    const yn1 = this.Y.mul(y.Z);
-    const yn2 = y.Y.mul(this.Z);
-    return xn1.equals(xn2) && yn1.equals(yn2);
-  }
-}
-
-class Edwards448Point extends EdwardsPoint {
+class Edwards448Point {
   // P = 2 ** 448 - 2 ** 224 - 1
   static readonly P = new BigInteger(
     "726838724295606890549323807888004534353641360687318060281490199180612328166730772686396383698676545930088884461843637361053498018365439",
@@ -255,6 +179,10 @@ class Edwards448Point extends EdwardsPoint {
     ),
   );
 
+  X: Field;
+  Y: Field;
+  Z: Field;
+
   constructor(x: Field, y: Field) {
     if (
       !y
@@ -272,14 +200,45 @@ class Edwards448Point extends EdwardsPoint {
       throw new Error("Invalid point");
     }
 
-    super(Edwards448Point.baseField, x, y);
+    this.X = x;
+    this.Y = y;
+    this.Z = Edwards448Point.baseField.make(N1);
   }
 
-  static stdbase(): EdwardsPoint {
+  static stdbase(): Edwards448Point {
     return new Edwards448Point(Edwards448Point.XB, Edwards448Point.YB);
   }
 
-  decode(s: number[]): EdwardsPoint | null {
+  private decode_base(s: number[], b: number): [Field | null, Field | null] {
+    if (s.length !== truediv(b, 8)) {
+      return [null, null];
+    }
+    const xs = s[truediv(b - 1, 8)] >> ((b - 1) & 7);
+    const y = Edwards448Point.baseField.frombytes(s, b);
+    if (!y) {
+      return [null, null];
+    }
+    let x = this.solve_x2(y).sqrt();
+    if (!x || (x.iszero() && xs !== x.sign())) {
+      return [null, null];
+    }
+    if (x.sign() !== xs) {
+      x = x.neg();
+    }
+    return [x, y];
+  }
+
+  private encode_base(b: number): number[] {
+    const xp = this.X.div(this.Z);
+    const yp = this.Y.div(this.Z);
+    const s = yp.tobytes(b);
+    if (xp.sign() !== 0) {
+      s[truediv(b - 1, 8)] |= 1 << (b - 1) % 8;
+    }
+    return s;
+  }
+
+  decode(s: number[]): Edwards448Point | null {
     const [x, y] = this.decode_base(s, 456);
     if (x === null || y === null) {
       return null;
@@ -307,7 +266,7 @@ class Edwards448Point extends EdwardsPoint {
   }
 
   // __add__
-  add(y: EdwardsPoint) {
+  add(y: Edwards448Point) {
     const tmp = this.zero_element();
     const xcp = this.X.mul(y.X);
     const ycp = this.Y.mul(y.Y);
@@ -327,7 +286,30 @@ class Edwards448Point extends EdwardsPoint {
     return tmp;
   }
 
-  double(): EdwardsPoint {
+  // __mul__
+  mul(x: BigInteger): Edwards448Point {
+    let r = this.zero_element();
+    let s = this as Edwards448Point;
+    while (x.compareTo(N0) > 0) {
+      if (x.mod(N2).compareTo(N0) > 0) {
+        r = r.add(s);
+      }
+      s = s.double();
+      x = x.divide(N2);
+    }
+    return r;
+  }
+
+  // __eq__
+  equals(y: Edwards448Point): boolean {
+    const xn1 = this.X.mul(y.Z);
+    const xn2 = y.X.mul(this.Z);
+    const yn1 = this.Y.mul(y.Z);
+    const yn2 = y.Y.mul(this.Z);
+    return xn1.equals(xn2) && yn1.equals(yn2);
+  }
+
+  double(): Edwards448Point {
     const tmp = this.zero_element();
     const x1s = this.X.mul(this.X);
     const y1s = this.Y.mul(this.Y);
@@ -366,13 +348,13 @@ type HashFunction = (
 ) => number[];
 
 class PureEdDSA {
-  private readonly B: EdwardsPoint;
+  private readonly B: Edwards448Point;
   private readonly H: HashFunction;
   private readonly l: BigInteger;
   private readonly n: number;
   private readonly b: number;
   private readonly c: number;
-  constructor(B: EdwardsPoint, H: HashFunction) {
+  constructor(B: Edwards448Point, H: HashFunction) {
     this.B = B;
     this.H = H;
     this.l = B.l();
