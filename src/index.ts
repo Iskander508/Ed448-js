@@ -18,8 +18,6 @@ const N1 = BigInteger.ONE;
 const N2 = fromNumber(2);
 const N3 = fromNumber(3);
 const N4 = fromNumber(4);
-const N5 = fromNumber(5);
-const N8 = fromNumber(8);
 
 function truediv(x: number, y: number): number {
   return Math.floor(x / y);
@@ -42,29 +40,7 @@ function tobytes(x: BigInteger, b: number): number[] {
 // Implementation based on https://datatracker.ietf.org/doc/html/rfc8032#appendix-A
 
 function sqrt4k3(x: BigInteger, p: BigInteger): BigInteger {
-  // pow(x,(p + 1)//4,p)
   return x.modPow(p.add(N1).divide(N4), p);
-}
-
-function sqrt8k5(x: BigInteger, p: BigInteger): BigInteger {
-  // y = pow(x,(p+3)//8,p)
-  // #If the square root exists, it is either y or y*2^(p-1)/4.
-  // if (y * y) % p == x % p: return y
-  // else:
-  //     z = pow(2,(p - 1)//4,p)
-  //     return (y * z) % p
-  const y = x.modPow(p.add(N3).divide(N8), p);
-  if (
-    y
-      .multiply(y)
-      .mod(p)
-      .compareTo(x.mod(p)) === 0
-  ) {
-    return y;
-  } else {
-    const z = N2.modPow(p.subtract(N1).divide(N4), p);
-    return y.multiply(z).mod(p);
-  }
 }
 
 function hexi(s: string): BigInteger {
@@ -132,10 +108,8 @@ class Field {
     let y: BigInteger;
     if (this.P.mod(N4).compareTo(N3) === 0) {
       y = sqrt4k3(this.X, this.P);
-    } else if (this.P.mod(N8).compareTo(N5) === 0) {
-      y = sqrt8k5(this.X, this.P);
     } else {
-      throw new Error("NotImplementedError('sqrt(_,8k+1)')");
+      throw new Error("NotImplementedError('sqrt(_,4k+1)')");
     }
 
     const _y = new Field(y, this.P);
